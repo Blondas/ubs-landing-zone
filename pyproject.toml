@@ -1,0 +1,26 @@
+[project]
+name = "ubs-landing-zone"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Krzysiek Nowakowski",email = "knowakowski@pm.me"}
+]
+readme = "README.md"
+requires-python = ">=3.9,<4.0"
+dependencies = [
+    "pytest (>=8.3.5,<9.0.0)",
+    "dotenv (>=0.9.9,<0.10.0)",
+    "loguru (>=0.7.3,<0.8.0)"
+]
+
+[tool.poetry]
+packages = [{include = "ubs_landing_zone", from = "src"}]
+package-mode = false
+
+[tool.poetry.scripts]
+hello-world = "ubs_landing_zone.main:main"
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
