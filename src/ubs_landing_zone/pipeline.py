@@ -16,9 +16,9 @@ class Pipeline:
         failed_dir: Path
     ):
         self._az_copy: AzCopy = az_copy
-        self._checksum_extension = checksum_extension
-        self._algorithm = algorithm
-        self._failed_dir = failed_dir
+        self._checksum_extension: str = checksum_extension
+        self._algorithm: str = algorithm
+        self._failed_dir: Path = failed_dir
 
     def run(self, feed: Path) -> None:
         start_time = time.time()
@@ -27,12 +27,21 @@ class Pipeline:
             self._verify_checksum(feed)
             self._upload(feed)
         except Exception as e:
+            logger.debug(f"Error processing feed: {feed.name}, moving to failed directory: {self._failed_dir}.")
+            
+            self._failed_dir.mkdir(parents=True, exist_ok=True)
             feed.rename(self._failed_dir / feed.name)
+            
+            md5_file = feed.with_suffix(self._checksum_extension)
+            if md5_file.exists():
+                md5_file.rename(self._failed_dir / md5_file.name)
+            
             raise
         
         processing_time = time.time() - start_time
         logger.info(f"Successfully proceeded feed: {feed.name} in {processing_time:.1f}s, deleting local copy.")
         self._delete_path(feed)
+        self._delete_path(feed.with_suffix(self._checksum_extension))
 
     def _verify_checksum(self, feed: Path) -> None:
         logger.debug(f"Verifying checksum of {feed.name}.")

@@ -49,7 +49,7 @@ def main():
         az_copy=az_copy,
         checksum_extension=checksum_extension,
         algorithm=checksum_algorithm,
-        failed_dir=Path(dir)
+        failed_dir=Path(dir_failed)
     )
     executor: Executor = Executor(
         pipeline=pipeline,
