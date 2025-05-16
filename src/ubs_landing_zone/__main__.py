@@ -4,9 +4,9 @@ from datetime import datetime
 
 from dotenv import load_dotenv, dotenv_values
 from pathlib import Path
-from pipeline import Pipeline
-from src.ubs_landing_zone.az_copy import AzCopy
-from src.ubs_landing_zone.executor import Executor
+from .pipeline import Pipeline
+from .az_copy import AzCopy
+from .executor import Executor
 from loguru import logger
 import json
 

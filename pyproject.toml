@@ -18,7 +18,7 @@ packages = [{include = "ubs_landing_zone", from = "src"}]
 package-mode = false
 
 [tool.poetry.scripts]
-hello-world = "ubs_landing_zone.main:main"
+hello-world = "ubs_landing_zone.__main__:main"
 
 
 [build-system]

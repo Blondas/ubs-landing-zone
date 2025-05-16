@@ -4,7 +4,7 @@ from pathlib import Path
 import hashlib
 import time
 
-from src.ubs_landing_zone.az_copy import AzCopy
+from .az_copy import AzCopy
 from loguru import logger
 
 class Pipeline:
@@ -49,7 +49,7 @@ class Pipeline:
         expected_checksum: str
         try:
             with open(expected_checksum_file, 'r') as f:
-                expected_checksum = f.read()
+                expected_checksum = f.read().strip()
         except Exception as e:
             logger.error(f"Cannot read checksum file: {expected_checksum_file}, error: {e}")
             raise
@@ -58,7 +58,7 @@ class Pipeline:
         with open(feed, 'rb') as f:
             h.update(f.read())
             if h.hexdigest() != expected_checksum:
-                msg = f"Checksum did not match, feed: {feed}, expected: {expected_checksum}, calculated:  {h.hexdigest()}"
+                msg = f"Checksum did not match, feed: {feed}, expected: {expected_checksum}, calculated:  {h.hexdigest().strip()}"
                 logger.error(msg)
                 raise ValueError(msg) 
         logger.debug(f"Checksum match for feed: {feed}")

@@ -2,7 +2,7 @@ import os
 import re
 
 from pathlib import Path
-from src.ubs_landing_zone.pipeline import Pipeline
+from .pipeline import Pipeline
 from concurrent.futures import ThreadPoolExecutor
 from loguru import logger
 
