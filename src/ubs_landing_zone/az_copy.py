@@ -6,10 +6,10 @@ class AzCopy:
     # def __init__(self):
     #     ...
     
-    def upload(self, feed: Path):
+    def upload(self, file: Path) -> None:
         cmd = [
             "echo", "azcopy",
-            str(feed),
+            str(file),
             f"destination",
             "--overwrite"
         ]
@@ -26,7 +26,8 @@ class AzCopy:
 
             if result.stderr:
                 logger.warning(f"Upload completed with warnings: {result.stderr}")
-            logger.debug(f"Upload completed successfully for {feed.name}")
+            
+            logger.debug(f"Upload completed successfully for {file.name}")
 
         except Exception as e: 
             logger.error(f"Upload failed, error: {e}")
