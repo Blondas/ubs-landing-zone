@@ -33,6 +33,11 @@ def main() -> None:
     
     config_logging(log_level)
     
+    preserve_source_feeds: bool = bool(os.getenv("UBS_LANDING_ZONE_PRESERVE_SOURCE_FEEDS"))
+    azcopy_binary: str = os.getenv("UBS_LANDING_ZONE_AZCOPY_BINARY")
+    vault_binary: str = os.getenv("UBS_LANDING_ZONE_VAULT_BINARY")
+    az_copy_dry_run: bool = bool(os.getenv("UBS_LANDING_ZONE_AZCOPY_DRY_RUN"))
+    az_copy_destination_url: str = os.getenv("UBS_LANDING_ZONE_AZCOPY_DESTINATION_URL")
     dir: str = os.getenv("UBS_LANDING_ZONE_DIR")
     dir_processing: str = os.getenv("UBS_LANDING_ZONE_DIR_PROCESSING")
     dir_failed: str = os.getenv("UBS_LANDING_ZONE_DIR_FAILED")
@@ -43,6 +48,12 @@ def main() -> None:
     
     logger.debug("== Environment Variables ==")
     logger.debug(f"landing zone log level: {log_level}")
+    logger.debug(f"preserve source feeds: {preserve_source_feeds}")
+    logger.debug(f"azcopy binary: {azcopy_binary}")
+    logger.debug(f"vault binary: {vault_binary}")
+    logger.debug(f"preserve source feeds: {preserve_source_feeds}")
+    logger.debug(f"azcopy --dry-run: {az_copy_dry_run}")
+    logger.debug(f"azcopy destination url: {az_copy_destination_url}")
     logger.debug(f"landing zone directory: {dir}")
     logger.debug(f"processing directory: {dir_processing}")
     logger.debug(f"failed directory: {dir_failed}")
@@ -50,9 +61,14 @@ def main() -> None:
     logger.debug(f"checksum extension: {checksum_extension}")
     logger.debug(f"checksum algorithm: {checksum_algorithm}")
     logger.debug(f"parallelism: {parallelism}")
+    
     logger.debug("== Starting UBS Landing Zone processing... ==")
     
-    az_copy: AzCopy = AzCopy()
+    az_copy: AzCopy = AzCopy(
+        az_copy_binary=Path(azcopy_binary),
+        az_copy_destination_url=az_copy_destination_url, 
+        dry_run=az_copy_dry_run
+    )
     pipeline: Pipeline = Pipeline(
         az_copy=az_copy,
         checksum_extension=checksum_extension,

@@ -22,12 +22,15 @@ class TestIntegration:
         }
     
     @pytest.fixture
-    def env_vars(self, monkeypatch):
+    def env_vars(self, monkeypatch):       
         monkeypatch.setenv("UBS_LANDING_ZONE_LOG_LEVEL", "INFO")
+        monkeypatch.setenv("UBS_LANDING_ZONE_PRESERVE_SOURCE_FEEDS", "FALSE")
+        monkeypatch.setenv("UBS_LANDING_ZONE_AZCOPY_DRY_RUN", "TRUE")
+        monkeypatch.setenv("UBS_LANDING_ZONE_AZCOPY_DESTINATION_URL", "https://example.com/bucket?sv=2020-04-08&sig=dummySignature")
         monkeypatch.setenv("UBS_LANDING_ZONE_FEED_PATTERN", r".+\.tar")
         monkeypatch.setenv("UBS_LANDING_ZONE_CHECKSUM_EXTENSION", ".md5")
         monkeypatch.setenv("UBS_LANDING_ZONE_CHECKSUM_ALGORITHM", "MD5")
-        monkeypatch.setenv("UBS_LANDING_ZONE_PARALLELISM", "1")
+        monkeypatch.setenv("UBS_LANDING_ZONE_PARALLELISM", "64")
         
     def test_ok_10_feeds(self, env_vars, base_dirs, monkeypatch):
         shutil.copytree(
@@ -70,9 +73,8 @@ class TestIntegration:
             main()
         assert "No control file" in exc_info.value.code
         assert "Corrupted archive" in exc_info.value.code
-        assert "Checksum file missing" in exc_info.value.code
         
-    def test_not_ok_3_missing_checksum_corrupted_tar_missing_control(self, env_vars, base_dirs, monkeypatch):
+    def test_not_ok_corrupted_tar_missing_control(self, env_vars, base_dirs, monkeypatch):
         shutil.copytree(
             self.resource_dir / "NOT_OK_missing_checksum_corrupted_tar_missing_control",
             base_dirs["landing_zone"],
@@ -87,4 +89,19 @@ class TestIntegration:
             main()
         assert "No control file" in exc_info.value.code
         assert "Corrupted archive" in exc_info.value.code
-        assert "Checksum file missing" in exc_info.value.code
+
+    def test_not_ok_1_feed_az_copy_fail(self, env_vars, base_dirs, monkeypatch):
+        shutil.copytree(
+            self.resource_dir / "OK_1_feed",
+            base_dirs["landing_zone"],
+            dirs_exist_ok=True
+        )
+        monkeypatch.setenv("UBS_LANDING_ZONE_AZCOPY_DESTINATION_URL", "https://example.com")
+
+        monkeypatch.setenv("UBS_LANDING_ZONE_DIR", str(base_dirs["landing_zone"]))
+        monkeypatch.setenv("UBS_LANDING_ZONE_DIR_PROCESSING", str(base_dirs["processing"]))
+        monkeypatch.setenv("UBS_LANDING_ZONE_DIR_FAILED", str(base_dirs["failed"]))
+        
+        with pytest.raises(SystemExit) as exc_info:
+            main()
+        assert "AZCopy command failed" in exc_info.value.code

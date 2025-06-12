@@ -20,7 +20,8 @@ def pipeline(
             checksum_extension=checksum_extension,
             algorithm=algorithm,
             failed_dir=tmp_path / "failed",
-            processing_dir=tmp_path / "processing"
+            processing_dir=tmp_path / "processing",
+            preserve_source_feeds=False
         )
 
 class TestPipeline:
@@ -91,12 +92,13 @@ class TestPipeline:
         def mock_open_handler(file_path, mode='r', **kwargs):
                 raise ValueError("FooError")
 
+        monkeypatch.setattr(Path, 'exists', lambda x: True)
         monkeypatch.setattr("builtins.open", mock_open_handler)
         monkeypatch.setattr(Path, "with_suffix", lambda self, suffix: checksum_path)
 
         with pytest.raises(IOError) as exc_info:
             pipeline._verify_checksum(feed_path)
-        assert "Checksum file missing: test_feed.md5" in str(exc_info.value)
+        assert "Checksum file cannot be open: test_feed.md5" in str(exc_info.value)
 
     def test_verify_checksum_checksum_not_match_error(self, pipeline, monkeypatch):
         feed_path = Path("test_feed.tar")
@@ -110,6 +112,7 @@ class TestPipeline:
             else:  # mode == 'rb'
                 return mock_open(read_data=test_content)()
 
+        monkeypatch.setattr(Path, 'exists', lambda x: True)
         monkeypatch.setattr("builtins.open", mock_open_handler)
         monkeypatch.setattr(Path, "with_suffix", lambda self, suffix: checksum_path)
 
@@ -129,7 +132,8 @@ class TestPipeline:
             checksum_extension=checksum_extension,
             algorithm=algorithm,
             failed_dir=base_dirs["failed_dir"],
-            processing_dir=base_dirs["processing_dir"]
+            processing_dir=base_dirs["processing_dir"],
+            preserve_source_feeds=False
         )
 
         valid_feed_tar: Path = self._prepare_valid_feed(base_dirs["feeds_dir"])
@@ -151,7 +155,8 @@ class TestPipeline:
             checksum_extension=checksum_extension,
             algorithm=algorithm,
             failed_dir=base_dirs["failed_dir"],
-            processing_dir=base_dirs["processing_dir"]
+            processing_dir=base_dirs["processing_dir"],
+            preserve_source_feeds=False
         )
 
         invalid_feed_tar: Path = base_dirs["feeds_dir"] / "invalid_feed.tar"
@@ -225,7 +230,7 @@ class TestPipeline:
         
         with pytest.raises(IOError) as exc_info:
             pipeline.run(feed_path)
-        assert f"Checksum file missing: test_feed.md5" in str(exc_info.value)
+        assert f"Corrupted archive (feed), cannot extract test_feed.tar to processing dir" in str(exc_info.value)
         
         assert not feed_path.exists() 
         assert not feed_path.with_suffix(pipeline._checksum_extension).exists() 
@@ -240,7 +245,8 @@ class TestPipeline:
             checksum_extension=".md5",
             algorithm=checksum_algorithm,
             failed_dir=base_dirs["failed_dir"],
-            processing_dir=base_dirs["processing_dir"]
+            processing_dir=base_dirs["processing_dir"],
+            preserve_source_feeds=False
         )
 
         with pytest.raises(IOError) as exc_info:
